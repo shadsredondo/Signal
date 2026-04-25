@@ -148,7 +148,8 @@ export default function ConfirmPage() {
   const router = useRouter()
   const [draft, setDraft] = useState<DraftSession | null>(null)
   const [participants, setParticipants] = useState<Participant[]>([])
-  const [goal, setGoal] = useState('')
+  const [selectedGoals, setSelectedGoals] = useState<string[]>([])
+  const [customGoal, setCustomGoal] = useState('')
   const [roles, setRoles] = useState<string[]>([])
   const [isGenerating, setIsGenerating] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
@@ -191,7 +192,7 @@ export default function ConfirmPage() {
 
   function validate() {
     const e: Record<string, string> = {}
-    if (!goal.trim()) e.goal = 'What did you want from this meeting?'
+    if (selectedGoals.length === 0 && !customGoal.trim()) e.goal = 'Select at least one goal.'
     if (participants.filter(p => p.name.trim()).length === 0) e.participants = 'Add at least one participant.'
     return e
   }
@@ -201,6 +202,7 @@ export default function ConfirmPage() {
     if (Object.keys(e).length > 0) { setErrors(e); return }
 
     setIsGenerating(true)
+    const goal = [...selectedGoals, customGoal.trim()].filter(Boolean).join(', ')
     const filledParticipants = participants.filter(p => p.name.trim())
     const coaching = generateMockCoaching(goal, filledParticipants, draft?.userTitle || '')
 
@@ -209,7 +211,7 @@ export default function ConfirmPage() {
       createdAt: new Date().toISOString(),
       transcript: draft!.transcript,
       transcriptFormat: draft!.transcriptFormat,
-      userGoal: goal,
+      userGoal: [...selectedGoals, customGoal.trim()].filter(Boolean).join(', '),
       userTitle: draft!.userTitle,
       userFunction: draft!.userFunction,
       userSeniority: draft!.userSeniority,
@@ -299,30 +301,35 @@ export default function ConfirmPage() {
           </p>
 
           <div className="flex flex-wrap gap-2 mb-4">
-            {GOAL_SUGGESTIONS.map(suggestion => (
-              <button
-                key={suggestion}
-                type="button"
-                onClick={() => {
-                  setGoal(suggestion)
-                  if (errors.goal) setErrors(prev => ({ ...prev, goal: '' }))
-                }}
-                className={`px-3.5 py-1.5 text-sm rounded-full border transition-all ${
-                  goal === suggestion
-                    ? 'bg-indigo-600 text-white border-indigo-600'
-                    : 'bg-white text-gray-600 border-gray-200 hover:border-indigo-300 hover:text-indigo-600'
-                }`}
-              >
-                {suggestion}
-              </button>
-            ))}
+            {GOAL_SUGGESTIONS.map(suggestion => {
+              const active = selectedGoals.includes(suggestion)
+              return (
+                <button
+                  key={suggestion}
+                  type="button"
+                  onClick={() => {
+                    setSelectedGoals(prev =>
+                      active ? prev.filter(g => g !== suggestion) : [...prev, suggestion]
+                    )
+                    if (errors.goal) setErrors(prev => ({ ...prev, goal: '' }))
+                  }}
+                  className={`px-3.5 py-1.5 text-sm rounded-full border transition-all ${
+                    active
+                      ? 'bg-indigo-600 text-white border-indigo-600'
+                      : 'bg-white text-gray-600 border-gray-200 hover:border-indigo-300 hover:text-indigo-600'
+                  }`}
+                >
+                  {suggestion}
+                </button>
+              )
+            })}
           </div>
 
           <Input
-            placeholder="Or describe your goal in your own words…"
-            value={goal}
+            placeholder="Add your own goal…"
+            value={customGoal}
             onChange={e => {
-              setGoal(e.target.value)
+              setCustomGoal(e.target.value)
               if (errors.goal) setErrors(prev => ({ ...prev, goal: '' }))
             }}
             error={errors.goal}
