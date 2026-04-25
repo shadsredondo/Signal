@@ -172,20 +172,6 @@ export default function ResultsPage() {
           />
         </div>
 
-        {/* Participants overview */}
-        <div className="flex gap-2 flex-wrap fade-in-2">
-          {participants.map(p => (
-            <div
-              key={p.id}
-              className="flex items-center gap-1.5 bg-white border border-gray-200 rounded-full px-3 py-1"
-            >
-              {p.isUser && <div className="w-1.5 h-1.5 rounded-full bg-indigo-500" />}
-              <span className="text-xs font-medium text-gray-700">{p.name}</span>
-              {p.role && <span className="text-xs text-gray-400">{p.role}</span>}
-            </div>
-          ))}
-        </div>
-
         {/* Strategic Communication */}
         <div className="fade-in-2">
           <ExpandableCard
