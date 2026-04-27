@@ -1,5 +1,16 @@
 import { TranscriptFormat } from '@/types'
 
+const NON_SPEAKER_TOKENS = new Set([
+  'meeting title', 'attendees', 'attendee', 'date', 'time', 'location',
+  'duration', 'host', 'note', 'notes', 'subject', 'topic', 'agenda',
+  'summary', 'action items', 'action item', 're', 'from', 'to', 'cc',
+  'recorded by', 'transcribed by', 'zoom meeting',
+])
+
+function isNonSpeaker(name: string): boolean {
+  return NON_SPEAKER_TOKENS.has(name.toLowerCase())
+}
+
 export function detectFormat(text: string): TranscriptFormat {
   // Zoom VTT format has WEBVTT header or timestamp patterns like 00:00:01.000 --> 00:00:05.000
   if (text.includes('WEBVTT') || /\d{2}:\d{2}:\d{2}\.\d{3}\s+-->\s+\d{2}:\d{2}:\d{2}\.\d{3}/.test(text)) {
@@ -19,7 +30,7 @@ export function extractSpeakers(text: string, format: TranscriptFormat): string[
     while ((match = zoomLinePattern.exec(text)) !== null) {
       const name = match[1].trim()
       // Filter out timestamp lines and common non-name patterns
-      if (!name.includes('-->') && !name.match(/^\d/) && name.length > 1) {
+      if (!name.includes('-->') && !name.match(/^\d/) && name.length > 1 && !isNonSpeaker(name)) {
         speakers.add(name)
       }
     }
@@ -35,7 +46,7 @@ export function extractSpeakers(text: string, format: TranscriptFormat): string[
     let match
     while ((match = rawPattern.exec(text)) !== null) {
       const name = match[1].trim()
-      if (name.length > 1 && name.length < 40) {
+      if (name.length > 1 && name.length < 40 && !isNonSpeaker(name)) {
         speakers.add(name)
       }
     }

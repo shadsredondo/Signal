@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { getDraft, clearDraft, saveSession } from '@/lib/storage'
-import { getAllRoles, addCustomRole } from '@/lib/default-roles'
+import { ROLE_GROUPS, DEFAULT_ROLES, getAllRoles, addCustomRole } from '@/lib/default-roles'
 import { generateMockCoaching } from '@/lib/mock-coaching'
 import { generateId } from '@/lib/utils'
 import type { Participant, Importance, DraftSession } from '@/types'
@@ -30,14 +30,16 @@ const GOAL_SUGGESTIONS = [
 
 function ParticipantRow({
   participant,
-  roles,
+  customRoles,
   onUpdate,
   onRemove,
+  onCustomRoleAdded,
 }: {
   participant: Participant
-  roles: string[]
+  customRoles: string[]
   onUpdate: (p: Participant) => void
   onRemove: () => void
+  onCustomRoleAdded: (role: string) => void
 }) {
   const [showCustomRole, setShowCustomRole] = useState(false)
   const [customRole, setCustomRole] = useState('')
@@ -52,8 +54,10 @@ function ParticipantRow({
 
   function handleCustomRoleSubmit() {
     if (customRole.trim()) {
-      addCustomRole(customRole.trim())
-      onUpdate({ ...participant, role: customRole.trim() })
+      const role = customRole.trim()
+      addCustomRole(role)
+      onUpdate({ ...participant, role })
+      onCustomRoleAdded(role)
       setShowCustomRole(false)
       setCustomRole('')
     }
@@ -118,9 +122,20 @@ function ParticipantRow({
               className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
             >
               <option value="">Select role…</option>
-              {roles.map(r => (
-                <option key={r} value={r}>{r}</option>
+              {ROLE_GROUPS.map(group => (
+                <optgroup key={group.label} label={group.label}>
+                  {group.roles.map(r => (
+                    <option key={r} value={r}>{r}</option>
+                  ))}
+                </optgroup>
               ))}
+              {customRoles.length > 0 && (
+                <optgroup label="Custom">
+                  {customRoles.map(r => (
+                    <option key={r} value={r}>{r}</option>
+                  ))}
+                </optgroup>
+              )}
               <option value="__custom__">+ Add custom role…</option>
             </select>
           )}
@@ -157,7 +172,7 @@ export default function ConfirmPage() {
   const [draft, setDraft] = useState<DraftSession | null>(null)
   const [participants, setParticipants] = useState<Participant[]>([])
   const [goal, setGoal] = useState('')
-  const [roles, setRoles] = useState<string[]>([])
+  const [customRoles, setCustomRoles] = useState<string[]>([])
   const [isGenerating, setIsGenerating] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
 
@@ -168,7 +183,7 @@ export default function ConfirmPage() {
       return
     }
     setDraft(d)
-    setRoles(getAllRoles())
+    setCustomRoles(getAllRoles().filter(r => !DEFAULT_ROLES.includes(r as string)))
 
     // Pre-populate participants from detected speakers
     const detected: Participant[] = d.detectedParticipants.map(name => ({
@@ -279,9 +294,10 @@ export default function ConfirmPage() {
             <ParticipantRow
               key={p.id}
               participant={p}
-              roles={roles}
+              customRoles={customRoles}
               onUpdate={updated => updateParticipant(p.id, updated)}
               onRemove={() => removeParticipant(p.id)}
+              onCustomRoleAdded={role => setCustomRoles(prev => [...prev, role])}
             />
           ))}
         </div>
