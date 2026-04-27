@@ -37,6 +37,10 @@ export interface Session {
 }
 
 export interface CoachingOutput {
+  summary: {
+    strengths: string[]
+    moves: string[]
+  }
   goalScore: {
     color: GoalScore
     label: string

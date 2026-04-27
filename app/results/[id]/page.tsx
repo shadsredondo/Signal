@@ -6,7 +6,7 @@ import Link from 'next/link'
 import {
   ArrowLeft, Target, MessageSquare, Mic, FileText,
   Users, ArrowRight, ChevronDown, ChevronUp, AlertTriangle,
-  CheckCircle2, Minus, TrendingUp
+  CheckCircle2, Minus, TrendingUp, Check
 } from 'lucide-react'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -172,19 +172,41 @@ export default function ResultsPage() {
           />
         </div>
 
-        {/* Participants overview */}
-        <div className="flex gap-2 flex-wrap fade-in-2">
-          {participants.map(p => (
-            <div
-              key={p.id}
-              className="flex items-center gap-1.5 bg-white border border-gray-200 rounded-full px-3 py-1"
-            >
-              {p.isUser && <div className="w-1.5 h-1.5 rounded-full bg-indigo-500" />}
-              <span className="text-xs font-medium text-gray-700">{p.name}</span>
-              {p.role && <span className="text-xs text-gray-400">{p.role}</span>}
+        {/* Signal Summary — the hook */}
+        {c.summary && (
+          <div className="fade-in-2 bg-white border border-gray-200 rounded-xl overflow-hidden">
+            <div className="grid grid-cols-2 divide-x divide-gray-100">
+              {/* What landed */}
+              <div className="p-5">
+                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">What landed</p>
+                <ul className="space-y-3">
+                  {c.summary.strengths.map((s, i) => (
+                    <li key={i} className="flex items-start gap-2.5">
+                      <span className="mt-0.5 w-4 h-4 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0">
+                        <Check size={9} className="text-emerald-600" />
+                      </span>
+                      <span className="text-sm text-gray-700 leading-snug">{s}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              {/* Your next 3 moves */}
+              <div className="p-5">
+                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">Your next 3 moves</p>
+                <ol className="space-y-3">
+                  {c.summary.moves.map((m, i) => (
+                    <li key={i} className="flex items-start gap-2.5">
+                      <span className="mt-0.5 w-4 h-4 rounded-full bg-indigo-100 flex items-center justify-center flex-shrink-0 text-[10px] font-bold text-indigo-600">
+                        {i + 1}
+                      </span>
+                      <span className="text-sm text-gray-700 leading-snug">{m}</span>
+                    </li>
+                  ))}
+                </ol>
+              </div>
             </div>
-          ))}
-        </div>
+          </div>
+        )}
 
         {/* Strategic Communication */}
         <div className="fade-in-2">
@@ -192,7 +214,6 @@ export default function ResultsPage() {
             title="Strategic Communication"
             description="How you framed, navigated, and closed"
             icon={Target}
-            defaultOpen
           >
             <div className="space-y-5">
               {c.strategicCommunication.themes.map((theme, i) => (
@@ -215,7 +236,6 @@ export default function ResultsPage() {
             title="Tone & Presence"
             description="How you came across and how to improve"
             icon={Mic}
-            defaultOpen
           >
             <div className="space-y-6">
               {/* Overall */}
@@ -351,7 +371,6 @@ export default function ResultsPage() {
             title="3 Moves Before Next Meeting"
             description="Specific actions to build momentum"
             icon={MessageSquare}
-            defaultOpen
           >
             <div className="space-y-6">
               {/* Stakeholder specific */}

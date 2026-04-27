@@ -11,7 +11,21 @@ export function generateMockCoaching(
   const userParticipant = participants.find(p => p.isUser)
   const userName = userParticipant?.name || 'You'
 
+  const firstHighStakeholder = highImportanceParticipants[0]?.name || 'the key stakeholder'
+
   return {
+    summary: {
+      strengths: [
+        'Strong opener — you established why this conversation mattered before diving into the detail',
+        `Cited business impact early, which aligned the room before debate started`,
+        'Kept the conversation moving and prevented it from stalling on process questions',
+      ],
+      moves: [
+        `Send ${firstHighStakeholder} a 3-bullet follow-up anchoring the decision and your ask — within 24 hours`,
+        'Close every next meeting with a specific ask: "Can we agree to X by [date]?"',
+        'Replace "I think we should" with "I recommend" — same idea, 3x more authority',
+      ],
+    },
     goalScore: {
       color: 'yellow',
       label: 'Partial progress toward your goal',
