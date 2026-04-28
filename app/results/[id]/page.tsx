@@ -6,7 +6,7 @@ import Link from 'next/link'
 import {
   ArrowLeft, Target, MessageSquare, Mic, FileText,
   Users, ArrowRight, ChevronDown, ChevronUp, AlertTriangle,
-  CheckCircle2, Minus, TrendingUp, Check
+  CheckCircle2, Minus, Check
 } from 'lucide-react'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -215,14 +215,25 @@ export default function ResultsPage() {
             description="How you framed, navigated, and closed"
             icon={Target}
           >
-            <div className="space-y-5">
+            <div className="space-y-3">
               {c.strategicCommunication.themes.map((theme, i) => (
-                <div key={i} className="border-l-2 border-indigo-200 pl-4">
-                  <p className="text-sm font-semibold text-gray-900 mb-1">{theme.title}</p>
-                  <p className="text-sm text-gray-600 mb-2 leading-relaxed">{theme.observation}</p>
-                  <div className="flex items-start gap-2 bg-indigo-50 rounded-lg p-3">
-                    <TrendingUp size={14} className="text-indigo-600 mt-0.5 flex-shrink-0" />
-                    <p className="text-sm text-indigo-800 leading-relaxed">{theme.recommendation}</p>
+                <div key={i} className="border border-gray-100 rounded-xl overflow-hidden">
+                  <div className="px-4 py-3 border-b border-gray-100 bg-gray-50">
+                    <p className="text-sm font-semibold text-gray-900">{theme.title}</p>
+                  </div>
+                  <div className="grid grid-cols-2 divide-x divide-gray-100">
+                    <div className="p-4">
+                      <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">What happened</p>
+                      <p className="text-sm text-gray-600 leading-relaxed">{theme.whatHappened}</p>
+                    </div>
+                    <div className="p-4">
+                      <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">How it landed</p>
+                      <p className="text-sm text-gray-600 leading-relaxed">{theme.howItLanded}</p>
+                    </div>
+                  </div>
+                  <div className="px-4 py-3 bg-indigo-50 border-t border-indigo-100">
+                    <p className="text-xs font-semibold text-indigo-400 uppercase tracking-wider mb-1">What to do better</p>
+                    <p className="text-sm text-indigo-800 leading-relaxed">{theme.whatToDoBetter}</p>
                   </div>
                 </div>
               ))}

@@ -49,8 +49,9 @@ export interface CoachingOutput {
   strategicCommunication: {
     themes: Array<{
       title: string
-      observation: string
-      recommendation: string
+      whatHappened: string
+      howItLanded: string
+      whatToDoBetter: string
     }>
   }
   toneAndPresence: {
