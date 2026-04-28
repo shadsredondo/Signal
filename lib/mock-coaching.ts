@@ -88,22 +88,25 @@ export function generateMockCoaching(
       })),
     },
     clarity: {
-      styleOverall: `Your communication is structured and logical, which is a real strength. The main opportunity is sharpness — several answers ran 20-30% longer than needed. Senior audiences scan for the signal; extra words dilute it.`,
+      styleOverall: `Your communication is structured and logical — a real strength. The main opportunity is sharpness: several answers ran 20–30% longer than needed. Senior audiences scan for the signal; extra words dilute it.`,
       examples: [
         {
+          title: 'Lead with the ask, not the context',
           original: `"So I think what we're trying to do here, and this is something we've been thinking about for a while, is kind of explore whether we can maybe move forward on this initiative in Q3."`,
+          howItLanded: `The ask was buried inside three qualifiers. By the time it arrived, attention had drifted — and the hedging signalled uncertainty rather than conviction.`,
           rewrite: `"We're proposing to move this initiative to Q3. Here's why now makes sense."`,
-          note: 'Lead with the recommendation, follow with the rationale. Never bury the ask.',
         },
         {
+          title: 'Make data do the work',
           original: `"There's some data that suggests activation might be dropping, and it might be worth looking into."`,
+          howItLanded: `Vague data feels like a hunch, not evidence. It invites pushback rather than action, and leaves the audience to decide whether it matters.`,
           rewrite: `"Activation dropped 22% in onboarding last quarter. I recommend we prioritize step 2 of the flow."`,
-          note: 'Specific numbers + clear recommendation = instant credibility.',
         },
         {
+          title: 'State your recommendation first',
           original: `"I think there are a few different ways we could potentially approach this problem."`,
+          howItLanded: `Opening with options without a recommendation puts the cognitive load on the audience. It can read as indecision rather than thoroughness.`,
           rewrite: `"There are three options. I recommend option two. Here's the tradeoff."`,
-          note: 'Name the options, state your recommendation, then explain — not the reverse.',
         },
       ],
     },

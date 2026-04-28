@@ -69,9 +69,10 @@ export interface CoachingOutput {
   clarity: {
     styleOverall: string
     examples: Array<{
+      title: string
       original: string
+      howItLanded: string
       rewrite: string
-      note: string
     }>
   }
   stakeholderSignals: Array<{

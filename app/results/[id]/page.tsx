@@ -310,29 +310,30 @@ export default function ResultsPage() {
             description="Sharpness, structure, and suggested rewrites"
             icon={FileText}
           >
-            <div className="space-y-6">
-              <p className="text-sm text-gray-700 leading-relaxed">{c.clarity.styleOverall}</p>
+            <div className="space-y-4">
+              <p className="text-sm text-gray-600 leading-relaxed">{c.clarity.styleOverall}</p>
 
-              <div>
-                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Line-by-line rewrites</p>
-                <div className="space-y-4">
-                  {c.clarity.examples.map((ex, i) => (
-                    <div key={i} className="rounded-lg border border-gray-200 overflow-hidden">
-                      <div className="bg-red-50 border-b border-gray-200 px-4 py-3">
-                        <p className="text-xs font-medium text-red-500 uppercase tracking-wider mb-1">Original</p>
-                        <p className="text-sm text-gray-800 italic">"{ex.original}"</p>
-                      </div>
-                      <div className="bg-emerald-50 border-b border-gray-200 px-4 py-3">
-                        <p className="text-xs font-medium text-emerald-600 uppercase tracking-wider mb-1">Rewrite</p>
-                        <p className="text-sm text-gray-800 font-medium">"{ex.rewrite}"</p>
-                      </div>
-                      <div className="bg-white px-4 py-3">
-                        <p className="text-xs text-gray-500">{ex.note}</p>
-                      </div>
+              {c.clarity.examples.map((ex, i) => (
+                <div key={i} className="border border-gray-100 rounded-xl overflow-hidden">
+                  <div className="px-4 py-3 border-b border-gray-100 bg-gray-50">
+                    <p className="text-sm font-semibold text-gray-900">{ex.title}</p>
+                  </div>
+                  <div className="grid grid-cols-2 divide-x divide-gray-100">
+                    <div className="p-4">
+                      <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">What you said</p>
+                      <p className="text-sm text-gray-600 leading-relaxed italic">"{ex.original}"</p>
                     </div>
-                  ))}
+                    <div className="p-4">
+                      <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">How it landed</p>
+                      <p className="text-sm text-gray-600 leading-relaxed">{ex.howItLanded}</p>
+                    </div>
+                  </div>
+                  <div className="px-4 py-3 bg-indigo-50 border-t border-indigo-100">
+                    <p className="text-xs font-semibold text-indigo-400 uppercase tracking-wider mb-1">What to say instead</p>
+                    <p className="text-sm text-indigo-800 leading-relaxed font-medium">"{ex.rewrite}"</p>
+                  </div>
                 </div>
-              </div>
+              ))}
             </div>
           </ExpandableCard>
         </div>
