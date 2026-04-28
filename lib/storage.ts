@@ -1,4 +1,5 @@
 import { Session, DraftSession } from '@/types'
+import { upsertStakeholders } from '@/lib/stakeholders'
 
 const SESSIONS_KEY = 'signal_sessions'
 const DRAFT_KEY = 'signal_draft'
@@ -25,6 +26,7 @@ export function saveSession(session: Session): void {
     sessions.unshift(session)
   }
   localStorage.setItem(SESSIONS_KEY, JSON.stringify(sessions))
+  upsertStakeholders(session.participants.filter(p => !p.isUser))
 }
 
 export function deleteSession(id: string): void {

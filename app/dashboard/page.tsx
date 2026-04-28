@@ -6,7 +6,9 @@ import { ArrowRight, Plus, ChevronRight, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { getSessions, deleteSession } from '@/lib/storage'
+import { hasProfile } from '@/lib/profile'
 import { formatDate } from '@/lib/utils'
+import { OnboardingModal } from '@/components/onboarding-modal'
 import type { Session, GoalScore } from '@/types'
 
 function ScoreDot({ score }: { score: GoalScore }) {
@@ -82,10 +84,12 @@ function SessionCard({ session, onDelete }: { session: Session; onDelete: () => 
 export default function DashboardPage() {
   const [sessions, setSessions] = useState<Session[]>([])
   const [loaded, setLoaded] = useState(false)
+  const [showOnboarding, setShowOnboarding] = useState(false)
 
   useEffect(() => {
     setSessions(getSessions())
     setLoaded(true)
+    if (!hasProfile()) setShowOnboarding(true)
   }, [])
 
   function handleDelete(id: string) {
@@ -99,6 +103,7 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {showOnboarding && <OnboardingModal onComplete={() => setShowOnboarding(false)} />}
       {/* Nav */}
       <nav className="bg-white border-b border-gray-200 px-6 py-4">
         <div className="max-w-3xl mx-auto flex items-center justify-between">

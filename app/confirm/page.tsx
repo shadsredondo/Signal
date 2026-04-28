@@ -7,6 +7,7 @@ import { ArrowLeft, ArrowRight, Plus, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { getDraft, clearDraft, saveSession } from '@/lib/storage'
+import { lookupRole } from '@/lib/stakeholders'
 import { ROLE_GROUPS, getAllRoles, addCustomRole } from '@/lib/default-roles'
 import { generateMockCoaching } from '@/lib/mock-coaching'
 import { generateId } from '@/lib/utils'
@@ -166,7 +167,7 @@ export default function ConfirmPage() {
     const detected: Participant[] = d.detectedParticipants.map(name => ({
       id: generateId(),
       name,
-      role: '',
+      role: lookupRole(name),
       importance: 'high' as const,
       isUser: false,
     }))
