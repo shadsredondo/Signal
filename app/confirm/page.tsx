@@ -14,6 +14,19 @@ import type { Participant, DraftSession } from '@/types'
 
 const ALL_ROLES = ROLE_GROUPS.flatMap(g => g.roles)
 
+const DEFAULT_DISPLAY_ROLES = [
+  'Product Manager',
+  'Director of Product',
+  'Software Engineer',
+  'Engineering Manager',
+  'Product Designer',
+  'Marketing Manager',
+  'Data Analyst',
+  'Chief of Staff',
+  'Skip-Level Manager',
+  'VP of Engineering',
+]
+
 const GOAL_SUGGESTIONS = [
   'Gain approval',
   'Influence decision',
@@ -41,8 +54,8 @@ function RoleInput({
   useEffect(() => { setQuery(value) }, [value])
 
   const filtered = query.trim()
-    ? allRoles.filter(r => r.toLowerCase().includes(query.toLowerCase())).slice(0, 8)
-    : ALL_ROLES.slice(0, 8)
+    ? allRoles.filter(r => r.toLowerCase().includes(query.toLowerCase())).slice(0, 10)
+    : [...DEFAULT_DISPLAY_ROLES, ...allRoles.filter(r => !ALL_ROLES.includes(r))]
 
   function select(role: string) {
     onChange(role)

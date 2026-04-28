@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Check } from 'lucide-react'
+import Link from 'next/link'
+import { Check, ArrowLeft } from 'lucide-react'
 import { getDraft } from '@/lib/storage'
 
 const STEPS = [
@@ -19,7 +20,6 @@ export default function AnalyzingPage() {
   const [currentStep, setCurrentStep] = useState(0)
 
   useEffect(() => {
-    // Redirect to /new if no draft exists
     const draft = getDraft()
     if (!draft) {
       router.replace('/new')
@@ -27,7 +27,6 @@ export default function AnalyzingPage() {
     }
 
     let stepIndex = 0
-    let elapsed = 0
 
     function runNextStep() {
       if (stepIndex >= STEPS.length) {
@@ -41,7 +40,6 @@ export default function AnalyzingPage() {
       setTimeout(() => {
         setCompletedSteps(prev => [...prev, stepIndex])
         stepIndex++
-        elapsed += duration
         setTimeout(runNextStep, 150)
       }, duration)
     }
@@ -50,61 +48,70 @@ export default function AnalyzingPage() {
   }, [router])
 
   return (
-    <div className="min-h-screen bg-[#06060f] flex items-center justify-center px-6">
-      <div className="max-w-sm w-full text-center">
-        {/* Animated icon */}
-        <div className="flex justify-center mb-10">
-          <div className="relative w-16 h-16">
-            <div className="absolute inset-0 rounded-full bg-indigo-600/20 animate-ping" />
-            <div className="relative w-16 h-16 rounded-full bg-indigo-600/30 border border-indigo-500/50 flex items-center justify-center">
-              <div className="w-6 h-6 rounded-full bg-indigo-500 animate-pulse" />
+    <div className="min-h-screen bg-[#06060f] flex flex-col px-6">
+      <nav className="py-4 max-w-sm mx-auto w-full">
+        <Link href="/new" className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-300 transition-colors">
+          <ArrowLeft size={16} />
+          Back
+        </Link>
+      </nav>
+
+      <div className="flex-1 flex items-center justify-center">
+        <div className="max-w-sm w-full text-center">
+          {/* Animated icon */}
+          <div className="flex justify-center mb-10">
+            <div className="relative w-16 h-16">
+              <div className="absolute inset-0 rounded-full bg-indigo-600/20 animate-ping" />
+              <div className="relative w-16 h-16 rounded-full bg-indigo-600/30 border border-indigo-500/50 flex items-center justify-center">
+                <div className="w-6 h-6 rounded-full bg-indigo-500 animate-pulse" />
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Title */}
-        <h1 className="text-2xl font-semibold text-white mb-2 fade-in">Reading the room…</h1>
-        <p className="text-sm text-gray-500 mb-10 fade-in-1">
-          Analyzing your conversation
-        </p>
+          {/* Title */}
+          <h1 className="text-2xl font-semibold text-white mb-2 fade-in">Reading the room…</h1>
+          <p className="text-sm text-gray-500 mb-10 fade-in-1">
+            Analyzing your conversation
+          </p>
 
-        {/* Steps */}
-        <div className="text-left space-y-3">
-          {STEPS.map((step, i) => {
-            const isDone = completedSteps.includes(i)
-            const isActive = currentStep === i && !isDone
+          {/* Steps */}
+          <div className="text-left space-y-3">
+            {STEPS.map((step, i) => {
+              const isDone = completedSteps.includes(i)
+              const isActive = currentStep === i && !isDone
 
-            return (
-              <div
-                key={i}
-                className={`flex items-center gap-3 transition-all duration-300 ${
-                  i > currentStep && !isDone ? 'opacity-30' : 'opacity-100'
-                }`}
-              >
+              return (
                 <div
-                  className={`w-5 h-5 rounded-full border flex items-center justify-center flex-shrink-0 transition-all duration-300 ${
-                    isDone
-                      ? 'bg-indigo-600 border-indigo-600'
-                      : isActive
-                      ? 'border-indigo-500 bg-transparent'
-                      : 'border-gray-700 bg-transparent'
+                  key={i}
+                  className={`flex items-center gap-3 transition-all duration-300 ${
+                    i > currentStep && !isDone ? 'opacity-30' : 'opacity-100'
                   }`}
                 >
-                  {isDone && <Check size={11} className="text-white" strokeWidth={3} />}
-                  {isActive && (
-                    <div className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse" />
-                  )}
+                  <div
+                    className={`w-5 h-5 rounded-full border flex items-center justify-center flex-shrink-0 transition-all duration-300 ${
+                      isDone
+                        ? 'bg-indigo-600 border-indigo-600'
+                        : isActive
+                        ? 'border-indigo-500 bg-transparent'
+                        : 'border-gray-700 bg-transparent'
+                    }`}
+                  >
+                    {isDone && <Check size={11} className="text-white" strokeWidth={3} />}
+                    {isActive && (
+                      <div className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse" />
+                    )}
+                  </div>
+                  <span
+                    className={`text-sm transition-colors duration-300 ${
+                      isDone ? 'text-gray-400' : isActive ? 'text-white' : 'text-gray-600'
+                    }`}
+                  >
+                    {step.label}
+                  </span>
                 </div>
-                <span
-                  className={`text-sm transition-colors duration-300 ${
-                    isDone ? 'text-gray-400' : isActive ? 'text-white' : 'text-gray-600'
-                  }`}
-                >
-                  {step.label}
-                </span>
-              </div>
-            )
-          })}
+              )
+            })}
+          </div>
         </div>
       </div>
     </div>
