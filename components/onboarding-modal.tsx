@@ -69,8 +69,6 @@ export function OnboardingModal({ onComplete }: { onComplete: () => void }) {
     if (!profile.name.trim()) e.name = 'Required'
     if (!profile.role.trim()) e.role = 'Required'
     if (!profile.seniority) e.seniority = 'Required'
-    if (!profile.companyName.trim()) e.companyName = 'Required'
-    if (!profile.companySize) e.companySize = 'Required'
     return e
   }
 
@@ -163,14 +161,13 @@ export function OnboardingModal({ onComplete }: { onComplete: () => void }) {
 
             <div className="grid grid-cols-2 gap-3">
               <Input
-                label="Company name"
+                label="Company name (optional)"
                 placeholder="e.g. Acme Corp"
                 value={profile.companyName}
                 onChange={e => set('companyName', e.target.value)}
-                error={errors.companyName}
               />
               <div>
-                <label className="text-sm font-medium text-gray-700 block mb-1.5">Company size</label>
+                <label className="text-sm font-medium text-gray-700 block mb-1.5">Company size <span className="text-gray-400 font-normal">(optional)</span></label>
                 <select
                   value={profile.companySize}
                   onChange={e => set('companySize', e.target.value)}
