@@ -1,7 +1,6 @@
 export type GoalScore = 'red' | 'yellow' | 'green'
 export type Importance = 'high' | 'medium' | 'low'
 export type TranscriptFormat = 'zoom' | 'raw'
-export type Alignment = 'aligned' | 'resistant' | 'neutral' | 'political'
 
 export interface Participant {
   id: string
@@ -36,58 +35,21 @@ export interface Session {
   goalScore: GoalScore
 }
 
+export interface CoachingSection {
+  id: 'strategic_communication' | 'tone_and_presence' | 'clarity'
+  one_line_summary: string
+  what_went_well: Array<{ point: string; evidence: string }>
+  what_could_be_stronger: Array<{ point: string; evidence: string }>
+  rewrite_suggestions?: Array<{ original: string; rewrite: string; why: string }>
+}
+
 export interface CoachingOutput {
-  summary: {
-    strengths: string[]
-    moves: string[]
+  goal_outcome: 'strong' | 'partial' | 'off_track'
+  overall_summary: {
+    headline: string
+    what_landed: string[]
+    next_moves: string[]
   }
-  goalScore: {
-    color: GoalScore
-    label: string
-    rationale: string
-  }
-  strategicCommunication: {
-    themes: Array<{
-      title: string
-      whatHappened: string
-      howItLanded: string
-      whatToDoBetter: string
-    }>
-  }
-  toneAndPresence: {
-    overall: {
-      summary: string
-      patterns: string[]
-      recommendations: string[]
-    }
-    perParticipant: Array<{
-      participantName: string
-      howYouCameAcross: string
-      recommendations: string[]
-    }>
-  }
-  clarity: {
-    styleOverall: string
-    examples: Array<{
-      title: string
-      original: string
-      howItLanded: string
-      rewrite: string
-    }>
-  }
-  stakeholderSignals: Array<{
-    participantName: string
-    role: string
-    signals: string[]
-    hiddenConcern?: string
-    alignment: Alignment
-  }>
-  nextActions: {
-    stakeholderSpecific: Array<{
-      stakeholder: string
-      action: string
-      timing: string
-    }>
-    general: string[]
-  }
+  sections: CoachingSection[]
+  next_steps: Array<{ action: string; timing: string }>
 }

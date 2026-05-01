@@ -4,73 +4,35 @@ import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import {
-  ArrowLeft, Target, MessageSquare, Mic, FileText,
-  Users, ArrowRight, ChevronDown, ChevronUp, AlertTriangle,
-  CheckCircle2, Minus, Check
+  ArrowLeft, ArrowRight, Target, MessageSquare, Mic, FileText,
+  ChevronDown, ChevronUp, AlertTriangle, CheckCircle2, Minus, Check
 } from 'lucide-react'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { getSession } from '@/lib/storage'
 import { formatDate } from '@/lib/utils'
-import type { Session, GoalScore, Alignment } from '@/types'
+import type { Session, GoalScore, CoachingSection } from '@/types'
 
-function GoalScoreCard({ score, label, rationale }: { score: GoalScore; label: string; rationale: string }) {
+function GoalIndicator({ score, headline }: { score: GoalScore; headline: string }) {
   const config = {
-    green: {
-      bg: 'bg-emerald-50',
-      border: 'border-emerald-200',
-      dot: 'bg-emerald-500',
-      text: 'text-emerald-700',
-      badge: 'success' as const,
-      icon: CheckCircle2,
-    },
-    yellow: {
-      bg: 'bg-amber-50',
-      border: 'border-amber-200',
-      dot: 'bg-amber-500',
-      text: 'text-amber-700',
-      badge: 'warning' as const,
-      icon: Minus,
-    },
-    red: {
-      bg: 'bg-red-50',
-      border: 'border-red-200',
-      dot: 'bg-red-500',
-      text: 'text-red-700',
-      badge: 'danger' as const,
-      icon: AlertTriangle,
-    },
+    green: { bg: 'bg-emerald-50', border: 'border-emerald-200', icon: CheckCircle2, iconColor: 'text-emerald-500', label: 'Strong', badge: 'success' as const },
+    yellow: { bg: 'bg-amber-50', border: 'border-amber-200', icon: Minus, iconColor: 'text-amber-500', label: 'Partial', badge: 'warning' as const },
+    red: { bg: 'bg-red-50', border: 'border-red-200', icon: AlertTriangle, iconColor: 'text-red-500', label: 'Off track', badge: 'danger' as const },
   }[score]
 
   const Icon = config.icon
 
   return (
-    <div className={`rounded-xl border p-6 ${config.bg} ${config.border}`}>
-      <div className="flex items-start gap-4">
-        <div className={`w-10 h-10 rounded-full ${config.dot} flex items-center justify-center flex-shrink-0`}>
-          <Icon size={18} className="text-white" />
-        </div>
+    <div className={`rounded-xl border p-5 ${config.bg} ${config.border}`}>
+      <div className="flex items-start gap-3">
+        <Icon size={18} className={`${config.iconColor} flex-shrink-0 mt-0.5`} />
         <div>
-          <div className="flex items-center gap-2 mb-1">
-            <Badge variant={config.badge}>{score.charAt(0).toUpperCase() + score.slice(1)}</Badge>
-          </div>
-          <p className={`font-semibold text-base ${config.text} mb-2`}>{label}</p>
-          <p className="text-sm text-gray-600 leading-relaxed">{rationale}</p>
+          <Badge variant={config.badge} className="mb-2">{config.label}</Badge>
+          <p className="text-sm text-gray-700 leading-relaxed">{headline}</p>
         </div>
       </div>
     </div>
   )
-}
-
-function AlignmentBadge({ alignment }: { alignment: Alignment }) {
-  const config = {
-    aligned: { label: 'Aligned', variant: 'success' as const },
-    resistant: { label: 'Resistant', variant: 'danger' as const },
-    neutral: { label: 'Neutral', variant: 'neutral' as const },
-    political: { label: 'Political', variant: 'warning' as const },
-  }[alignment]
-
-  return <Badge variant={config.variant}>{config.label}</Badge>
 }
 
 function ExpandableCard({
@@ -90,10 +52,7 @@ function ExpandableCard({
 
   return (
     <Card>
-      <button
-        className="w-full text-left"
-        onClick={() => setOpen(!open)}
-      >
+      <button className="w-full text-left" onClick={() => setOpen(!open)}>
         <CardHeader className="flex flex-row items-center justify-between pb-4">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center flex-shrink-0">
@@ -111,6 +70,71 @@ function ExpandableCard({
     </Card>
   )
 }
+
+function SectionContent({ section }: { section: CoachingSection }) {
+  return (
+    <div className="space-y-5">
+      {section.what_went_well.length > 0 && (
+        <div>
+          <p className="text-xs font-semibold text-emerald-600 uppercase tracking-wider mb-3">What went well</p>
+          <div className="space-y-2">
+            {section.what_went_well.map((item, i) => (
+              <div key={i} className="bg-emerald-50 border border-emerald-100 rounded-lg p-4">
+                <p className="text-sm font-medium text-gray-900 mb-1.5">{item.point}</p>
+                <p className="text-xs text-gray-500 italic leading-relaxed">"{item.evidence}"</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {section.what_could_be_stronger.length > 0 && (
+        <div>
+          <p className="text-xs font-semibold text-amber-600 uppercase tracking-wider mb-3">What could be stronger</p>
+          <div className="space-y-2">
+            {section.what_could_be_stronger.map((item, i) => (
+              <div key={i} className="bg-amber-50 border border-amber-100 rounded-lg p-4">
+                <p className="text-sm font-medium text-gray-900 mb-1.5">{item.point}</p>
+                <p className="text-xs text-gray-500 italic leading-relaxed">"{item.evidence}"</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {section.rewrite_suggestions && section.rewrite_suggestions.length > 0 && (
+        <div>
+          <p className="text-xs font-semibold text-indigo-600 uppercase tracking-wider mb-3">Rewrite suggestions</p>
+          <div className="space-y-3">
+            {section.rewrite_suggestions.map((r, i) => (
+              <div key={i} className="border border-gray-100 rounded-xl overflow-hidden">
+                <div className="grid grid-cols-2 divide-x divide-gray-100">
+                  <div className="p-4">
+                    <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">What you said</p>
+                    <p className="text-sm text-gray-600 italic leading-relaxed">"{r.original}"</p>
+                  </div>
+                  <div className="p-4">
+                    <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Stronger version</p>
+                    <p className="text-sm text-gray-900 font-medium leading-relaxed">"{r.rewrite}"</p>
+                  </div>
+                </div>
+                <div className="px-4 py-2.5 bg-indigo-50 border-t border-indigo-100">
+                  <p className="text-xs text-indigo-700 leading-relaxed">{r.why}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+const SECTION_CONFIG = {
+  strategic_communication: { title: 'Strategic Communication', icon: Target },
+  tone_and_presence: { title: 'Tone & Presence', icon: Mic },
+  clarity: { title: 'Clarity', icon: FileText },
+} as const
 
 export default function ResultsPage() {
   const params = useParams()
@@ -137,11 +161,21 @@ export default function ResultsPage() {
     )
   }
 
-  const { coachingOutput: c, participants } = session
+  const { coachingOutput: c } = session
+
+  if (!c.overall_summary) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-gray-500 mb-4">This session uses an older format.</p>
+          <Link href="/dashboard" className="text-indigo-600 text-sm">Back to sessions</Link>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Nav */}
       <nav className="bg-white border-b border-gray-200 px-6 py-4 sticky top-0 z-10">
         <div className="max-w-3xl mx-auto flex items-center justify-between">
           <Link href="/dashboard" className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-900 transition-colors">
@@ -149,282 +183,100 @@ export default function ResultsPage() {
             All sessions
           </Link>
           <span className="text-sm font-medium text-gray-900">Signal</span>
-          <div className="w-24 text-right">
-            <span className="text-xs text-gray-400">{formatDate(session.createdAt)}</span>
-          </div>
+          <span className="text-xs text-gray-400">{formatDate(session.createdAt)}</span>
         </div>
       </nav>
 
       <main className="max-w-3xl mx-auto px-6 py-10 space-y-5">
-        {/* Meeting header */}
+        {/* Header */}
         <div className="fade-in">
           <p className="text-xs text-gray-400 uppercase tracking-wider mb-1 font-medium">Coaching report</p>
           <h1 className="text-xl font-semibold text-gray-900 mb-1">{session.meetingTitle}</h1>
           <p className="text-sm text-gray-500">Goal: {session.userGoal}</p>
         </div>
 
-        {/* Goal Score */}
+        {/* Goal indicator */}
         <div className="fade-in-1">
-          <GoalScoreCard
-            score={c.goalScore.color}
-            label={c.goalScore.label}
-            rationale={c.goalScore.rationale}
-          />
+          <GoalIndicator score={session.goalScore} headline={c.overall_summary.headline} />
         </div>
 
-        {/* Signal Summary — the hook */}
-        {c.summary && (
-          <div className="fade-in-2 bg-white border border-gray-200 rounded-xl overflow-hidden">
-            <div className="grid grid-cols-2 divide-x divide-gray-100">
-              {/* What landed */}
-              <div className="p-5">
-                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">What landed</p>
-                <ul className="space-y-3">
-                  {c.summary.strengths.map((s, i) => (
-                    <li key={i} className="flex items-start gap-2.5">
-                      <span className="mt-0.5 w-4 h-4 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0">
-                        <Check size={9} className="text-emerald-600" />
-                      </span>
-                      <span className="text-sm text-gray-700 leading-snug">{s}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-              {/* Your next 3 moves */}
-              <div className="p-5">
-                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">Your next 3 moves</p>
-                <ol className="space-y-3">
-                  {c.summary.moves.map((m, i) => (
-                    <li key={i} className="flex items-start gap-2.5">
-                      <span className="mt-0.5 w-4 h-4 rounded-full bg-indigo-100 flex items-center justify-center flex-shrink-0 text-[10px] font-bold text-indigo-600">
-                        {i + 1}
-                      </span>
-                      <span className="text-sm text-gray-700 leading-snug">{m}</span>
-                    </li>
-                  ))}
-                </ol>
-              </div>
+        {/* Signal Summary */}
+        <div className="fade-in-2 bg-white border border-gray-200 rounded-xl overflow-hidden">
+          <div className="grid grid-cols-2 divide-x divide-gray-100">
+            <div className="p-5">
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">What landed</p>
+              <ul className="space-y-3">
+                {c.overall_summary.what_landed.map((s, i) => (
+                  <li key={i} className="flex items-start gap-2.5">
+                    <span className="mt-0.5 w-4 h-4 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0">
+                      <Check size={9} className="text-emerald-600" />
+                    </span>
+                    <span className="text-sm text-gray-700 leading-snug">{s}</span>
+                  </li>
+                ))}
+              </ul>
             </div>
+            <div className="p-5">
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">Your next 3 moves</p>
+              <ol className="space-y-3">
+                {c.overall_summary.next_moves.map((m, i) => (
+                  <li key={i} className="flex items-start gap-2.5">
+                    <span className="mt-0.5 w-4 h-4 rounded-full bg-indigo-100 flex items-center justify-center flex-shrink-0 text-[10px] font-bold text-indigo-600">
+                      {i + 1}
+                    </span>
+                    <span className="text-sm text-gray-700 leading-snug">{m}</span>
+                  </li>
+                ))}
+              </ol>
+            </div>
+          </div>
+        </div>
+
+        {/* Coaching sections */}
+        {c.sections.map((section, i) => {
+          const config = SECTION_CONFIG[section.id]
+          if (!config) return null
+          return (
+            <div key={section.id} className={`fade-in-${i + 2}`}>
+              <ExpandableCard
+                title={config.title}
+                description={section.one_line_summary}
+                icon={config.icon}
+              >
+                <SectionContent section={section} />
+              </ExpandableCard>
+            </div>
+          )
+        })}
+
+        {/* Next Steps */}
+        {c.next_steps.length > 0 && (
+          <div className="fade-in-4">
+            <ExpandableCard
+              title="Before Your Next Meeting"
+              description="Specific actions to build on this session"
+              icon={MessageSquare}
+            >
+              <div className="space-y-3">
+                {c.next_steps.map((step, i) => (
+                  <div key={i} className="flex items-start gap-3 bg-indigo-50 border border-indigo-100 rounded-lg p-4">
+                    <div className="w-6 h-6 rounded-full bg-indigo-600 text-white text-xs font-bold flex items-center justify-center flex-shrink-0">
+                      {i + 1}
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-800 leading-relaxed mb-1">{step.action}</p>
+                      <div className="flex items-center gap-1.5">
+                        <ArrowRight size={11} className="text-indigo-400" />
+                        <p className="text-xs text-indigo-600 font-medium">{step.timing}</p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </ExpandableCard>
           </div>
         )}
 
-        {/* Strategic Communication */}
-        <div className="fade-in-2">
-          <ExpandableCard
-            title="Strategic Communication"
-            description="How you framed, navigated, and closed"
-            icon={Target}
-          >
-            <div className="space-y-3">
-              {c.strategicCommunication.themes.map((theme, i) => (
-                <div key={i} className="border border-gray-100 rounded-xl overflow-hidden">
-                  <div className="px-4 py-3 border-b border-gray-100 bg-gray-50">
-                    <p className="text-sm font-semibold text-gray-900">{theme.title}</p>
-                  </div>
-                  <div className="grid grid-cols-2 divide-x divide-gray-100">
-                    <div className="p-4">
-                      <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">What happened</p>
-                      <p className="text-sm text-gray-600 leading-relaxed">{theme.whatHappened}</p>
-                    </div>
-                    <div className="p-4">
-                      <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">How it landed</p>
-                      <p className="text-sm text-gray-600 leading-relaxed">{theme.howItLanded}</p>
-                    </div>
-                  </div>
-                  <div className="px-4 py-3 bg-indigo-50 border-t border-indigo-100">
-                    <p className="text-xs font-semibold text-indigo-400 uppercase tracking-wider mb-1">What to do better</p>
-                    <p className="text-sm text-indigo-800 leading-relaxed">{theme.whatToDoBetter}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </ExpandableCard>
-        </div>
-
-        {/* Tone & Presence */}
-        <div className="fade-in-3">
-          <ExpandableCard
-            title="Tone & Presence"
-            description="How you came across and how to improve"
-            icon={Mic}
-          >
-            <div className="space-y-6">
-              {/* Overall */}
-              <div>
-                <p className="text-sm text-gray-700 leading-relaxed mb-4">{c.toneAndPresence.overall.summary}</p>
-
-                {/* Patterns detected */}
-                <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-4">
-                  <p className="text-xs font-semibold text-amber-700 uppercase tracking-wider mb-2">Patterns detected</p>
-                  <ul className="space-y-1.5">
-                    {c.toneAndPresence.overall.patterns.map((pattern, i) => (
-                      <li key={i} className="flex items-start gap-2 text-sm text-amber-800">
-                        <span className="mt-1.5 w-1 h-1 rounded-full bg-amber-500 flex-shrink-0" />
-                        {pattern}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-
-                {/* Recommendations */}
-                <ul className="space-y-2">
-                  {c.toneAndPresence.overall.recommendations.map((rec, i) => (
-                    <li key={i} className="flex items-start gap-2">
-                      <ArrowRight size={13} className="text-indigo-500 mt-1 flex-shrink-0" />
-                      <span className="text-sm text-gray-700 leading-relaxed">{rec}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              {/* Per participant */}
-              {c.toneAndPresence.perParticipant.length > 0 && (
-                <div>
-                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Per participant</p>
-                  <div className="space-y-4">
-                    {c.toneAndPresence.perParticipant.map((pp, i) => (
-                      <div key={i} className="bg-gray-50 rounded-lg p-4">
-                        <p className="text-sm font-semibold text-gray-900 mb-1">{pp.participantName}</p>
-                        <p className="text-sm text-gray-600 mb-3 leading-relaxed">{pp.howYouCameAcross}</p>
-                        <ul className="space-y-1.5">
-                          {pp.recommendations.map((r, j) => (
-                            <li key={j} className="flex items-start gap-2 text-sm text-gray-600">
-                              <ArrowRight size={12} className="text-indigo-400 mt-1 flex-shrink-0" />
-                              {r}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          </ExpandableCard>
-        </div>
-
-        {/* Clarity */}
-        <div className="fade-in-3">
-          <ExpandableCard
-            title="Clarity"
-            description="Sharpness, structure, and suggested rewrites"
-            icon={FileText}
-          >
-            <div className="space-y-4">
-              <p className="text-sm text-gray-600 leading-relaxed">{c.clarity.styleOverall}</p>
-
-              {c.clarity.examples.map((ex, i) => (
-                <div key={i} className="border border-gray-100 rounded-xl overflow-hidden">
-                  <div className="px-4 py-3 border-b border-gray-100 bg-gray-50">
-                    <p className="text-sm font-semibold text-gray-900">{ex.title}</p>
-                  </div>
-                  <div className="grid grid-cols-2 divide-x divide-gray-100">
-                    <div className="p-4">
-                      <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">What you said</p>
-                      <p className="text-sm text-gray-600 leading-relaxed italic">"{ex.original}"</p>
-                    </div>
-                    <div className="p-4">
-                      <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">How it landed</p>
-                      <p className="text-sm text-gray-600 leading-relaxed">{ex.howItLanded}</p>
-                    </div>
-                  </div>
-                  <div className="px-4 py-3 bg-indigo-50 border-t border-indigo-100">
-                    <p className="text-xs font-semibold text-indigo-400 uppercase tracking-wider mb-1">What to say instead</p>
-                    <p className="text-sm text-indigo-800 leading-relaxed font-medium">"{ex.rewrite}"</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </ExpandableCard>
-        </div>
-
-        {/* Stakeholder Signals */}
-        <div className="fade-in-4">
-          <ExpandableCard
-            title="Stakeholder Signals"
-            description="What each person was signaling in the room"
-            icon={Users}
-          >
-            <div className="space-y-4">
-              {c.stakeholderSignals.map((s, i) => (
-                <div key={i} className="bg-gray-50 rounded-lg p-4">
-                  <div className="flex items-center justify-between mb-3">
-                    <div>
-                      <p className="text-sm font-semibold text-gray-900">{s.participantName}</p>
-                      <p className="text-xs text-gray-500">{s.role}</p>
-                    </div>
-                    <AlignmentBadge alignment={s.alignment} />
-                  </div>
-
-                  <ul className="space-y-1.5 mb-3">
-                    {s.signals.map((signal, j) => (
-                      <li key={j} className="flex items-start gap-2 text-sm text-gray-600">
-                        <span className="mt-1.5 w-1 h-1 rounded-full bg-gray-400 flex-shrink-0" />
-                        {signal}
-                      </li>
-                    ))}
-                  </ul>
-
-                  {s.hiddenConcern && (
-                    <div className="flex items-start gap-2 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2.5">
-                      <AlertTriangle size={13} className="text-amber-500 mt-0.5 flex-shrink-0" />
-                      <p className="text-xs text-amber-700">{s.hiddenConcern}</p>
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          </ExpandableCard>
-        </div>
-
-        {/* Next Actions */}
-        <div className="fade-in-4">
-          <ExpandableCard
-            title="3 Moves Before Next Meeting"
-            description="Specific actions to build momentum"
-            icon={MessageSquare}
-          >
-            <div className="space-y-6">
-              {/* Stakeholder specific */}
-              {c.nextActions.stakeholderSpecific.length > 0 && (
-                <div>
-                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Stakeholder-specific</p>
-                  <div className="space-y-3">
-                    {c.nextActions.stakeholderSpecific.map((action, i) => (
-                      <div key={i} className="flex items-start gap-3 bg-indigo-50 border border-indigo-100 rounded-lg p-4">
-                        <div className="w-6 h-6 rounded-full bg-indigo-600 text-white text-xs font-bold flex items-center justify-center flex-shrink-0">
-                          {i + 1}
-                        </div>
-                        <div>
-                          <p className="text-sm font-semibold text-gray-900 mb-0.5">{action.stakeholder}</p>
-                          <p className="text-sm text-gray-700 leading-relaxed mb-1">{action.action}</p>
-                          <p className="text-xs text-indigo-600 font-medium">{action.timing}</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* General */}
-              {c.nextActions.general.length > 0 && (
-                <div>
-                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">General</p>
-                  <ul className="space-y-3">
-                    {c.nextActions.general.map((action, i) => (
-                      <li key={i} className="flex items-start gap-3">
-                        <ArrowRight size={14} className="text-indigo-500 mt-0.5 flex-shrink-0" />
-                        <span className="text-sm text-gray-700 leading-relaxed">{action}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </div>
-          </ExpandableCard>
-        </div>
-
-        {/* Bottom spacer */}
         <div className="h-8" />
       </main>
     </div>

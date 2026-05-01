@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input'
 import { getDraft, clearDraft, saveSession } from '@/lib/storage'
 import { lookupRole } from '@/lib/stakeholders'
 import { ROLE_GROUPS, getAllRoles, addCustomRole } from '@/lib/default-roles'
-import { generateMockCoaching } from '@/lib/mock-coaching'
+import { getProfile } from '@/lib/profile'
 import { generateId } from '@/lib/utils'
 import type { Participant, DraftSession } from '@/types'
 
@@ -211,26 +211,58 @@ export default function ConfirmPage() {
     setIsGenerating(true)
     const goal = [...selectedGoals, customGoal.trim()].filter(Boolean).join(', ')
     const filledParticipants = participants.filter(p => p.name.trim())
-    const coaching = generateMockCoaching(goal, filledParticipants, draft?.userTitle || '')
 
-    const session = {
-      id: generateId(),
-      createdAt: new Date().toISOString(),
-      transcript: draft!.transcript,
-      transcriptFormat: draft!.transcriptFormat,
-      userGoal: goal,
-      userTitle: draft!.userTitle,
-      userFunction: draft!.userFunction,
-      userSeniority: draft!.userSeniority,
-      meetingTitle: draft!.meetingTitle || 'Untitled meeting',
-      participants: filledParticipants,
-      coachingOutput: coaching,
-      goalScore: coaching.goalScore.color,
+    try {
+      const res = await fetch('/api/analyse', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          transcript: draft!.transcript,
+          transcriptFormat: draft!.transcriptFormat,
+          userGoal: goal,
+          userTitle: draft!.userTitle,
+          userFunction: draft!.userFunction,
+          userSeniority: draft!.userSeniority,
+          meetingTitle: draft!.meetingTitle || 'Untitled meeting',
+          participants: filledParticipants,
+          profile: getProfile(),
+        }),
+      })
+
+      if (!res.ok) {
+        const err = await res.json()
+        setErrors({ goal: err.error || 'Analysis failed. Please try again.' })
+        setIsGenerating(false)
+        return
+      }
+
+      const coaching = await res.json()
+
+      const outcomeToScore = { strong: 'green', partial: 'yellow', off_track: 'red' } as const
+      const goalScore = outcomeToScore[coaching.goal_outcome as keyof typeof outcomeToScore] ?? 'yellow'
+
+      const session = {
+        id: generateId(),
+        createdAt: new Date().toISOString(),
+        transcript: draft!.transcript,
+        transcriptFormat: draft!.transcriptFormat,
+        userGoal: goal,
+        userTitle: draft!.userTitle,
+        userFunction: draft!.userFunction,
+        userSeniority: draft!.userSeniority,
+        meetingTitle: draft!.meetingTitle || 'Untitled meeting',
+        participants: filledParticipants,
+        coachingOutput: coaching,
+        goalScore,
+      }
+
+      saveSession(session)
+      clearDraft()
+      router.push(`/results/${session.id}`)
+    } catch {
+      setErrors({ goal: 'Network error. Please try again.' })
+      setIsGenerating(false)
     }
-
-    saveSession(session)
-    clearDraft()
-    router.push(`/results/${session.id}`)
   }
 
   if (!draft) return null
