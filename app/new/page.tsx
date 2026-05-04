@@ -3,30 +3,17 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, ArrowRight, FileText, ClipboardList } from 'lucide-react'
+import { ArrowLeft, ArrowRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { saveDraft } from '@/lib/storage'
 import { parseTranscript } from '@/lib/transcript-parser'
 
-type InputMode = 'paste' | 'notes' | 'summary'
-
-const INPUT_MODES = [
-  { id: 'paste' as InputMode, label: 'Paste transcript', icon: FileText },
-  { id: 'notes' as InputMode, label: 'Upload notes', icon: ClipboardList },
-  { id: 'summary' as InputMode, label: 'Paste summary', icon: ClipboardList },
-]
-
-const PLACEHOLDER: Record<InputMode, string> = {
-  paste: `Sarah: Good morning everyone. Thanks for joining the roadmap review.\n\nMark: Morning. I wanted to raise a concern about the Q3 timeline before we get started...\n\nYou: Absolutely, let's address that first. I've actually prepared some data on that.`,
-  notes: `Meeting notes:\n- Discussed Q3 roadmap priorities\n- Sarah raised timeline concerns\n- Agreed to follow up on resource allocation`,
-  summary: `In this meeting we discussed the Q3 product roadmap. Key topics included timeline feasibility, resource allocation, and stakeholder alignment. The main outcome was...`,
-}
+const PLACEHOLDER = `Sarah: Good morning everyone. Thanks for joining the roadmap review.\n\nMark: Morning. I wanted to raise a concern about the Q3 timeline before we get started...\n\nYou: Absolutely, let's address that first. I've actually prepared some data on that.`
 
 export default function NewMeetingPage() {
   const router = useRouter()
-  const [mode, setMode] = useState<InputMode>('paste')
   const [transcript, setTranscript] = useState('')
   const [meetingTitle, setMeetingTitle] = useState('')
   const [userTitle, setUserTitle] = useState('')
@@ -88,25 +75,6 @@ export default function NewMeetingPage() {
           </p>
         </div>
 
-        {/* Input mode tabs */}
-        <div className="mb-6 fade-in-1">
-          <div className="flex gap-1 bg-gray-100 p-1 rounded-lg w-fit">
-            {INPUT_MODES.map(({ id, label }) => (
-              <button
-                key={id}
-                onClick={() => setMode(id)}
-                className={`px-4 py-1.5 text-sm rounded-md transition-all duration-150 font-medium ${
-                  mode === id
-                    ? 'bg-white text-gray-900 shadow-sm'
-                    : 'text-gray-500 hover:text-gray-700'
-                }`}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-        </div>
-
         {/* Meeting title */}
         <div className="mb-5 fade-in-1">
           <Input
@@ -120,8 +88,8 @@ export default function NewMeetingPage() {
         {/* Transcript input */}
         <div className="mb-8 fade-in-2">
           <Textarea
-            label={mode === 'paste' ? 'Transcript' : mode === 'notes' ? 'Meeting notes' : 'Summary'}
-            placeholder={PLACEHOLDER[mode]}
+            label="Transcript"
+            placeholder={PLACEHOLDER}
             value={transcript}
             onChange={e => {
               setTranscript(e.target.value)
