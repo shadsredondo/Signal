@@ -2,7 +2,7 @@ import { TranscriptFormat } from '@/types'
 
 const NON_SPEAKER_TOKENS = new Set([
   // Meeting metadata labels
-  'meeting title', 'attendees', 'attendee', 'date', 'time', 'location',
+  'meeting', 'meeting title', 'attendees', 'attendee', 'date', 'time', 'location',
   'duration', 'host', 'note', 'notes', 'subject', 'topic', 'agenda',
   'summary', 'action items', 'action item', 're', 'from', 'to', 'cc',
   'recorded by', 'transcribed by', 'zoom meeting',

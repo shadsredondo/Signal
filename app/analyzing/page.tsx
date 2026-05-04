@@ -4,7 +4,10 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Check, ArrowLeft } from 'lucide-react'
-import { getDraft } from '@/lib/storage'
+import { getDraft, saveSession, clearDraft } from '@/lib/storage'
+import { getProfile } from '@/lib/profile'
+import { generateId } from '@/lib/utils'
+import type { CoachingOutput } from '@/types'
 
 const STEPS = [
   { label: 'Identifying speakers', duration: 800 },
@@ -18,6 +21,7 @@ export default function AnalyzingPage() {
   const router = useRouter()
   const [completedSteps, setCompletedSteps] = useState<number[]>([])
   const [currentStep, setCurrentStep] = useState(0)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     const draft = getDraft()
@@ -26,26 +30,104 @@ export default function AnalyzingPage() {
       return
     }
 
-    let stepIndex = 0
+    let stepsFinished = false
+    let apiFinished = false
+    let coachingResult: CoachingOutput | null = null
+    let apiError: string | null = null
 
-    function runNextStep() {
-      if (stepIndex >= STEPS.length) {
-        setTimeout(() => router.push('/confirm'), 400)
+    function tryComplete() {
+      if (!stepsFinished || !apiFinished) return
+      if (apiError || !coachingResult) {
+        setError(apiError || 'Something went wrong — please try again.')
         return
       }
 
+      const outcomeToScore = { strong: 'green', partial: 'yellow', off_track: 'red' } as const
+      const goalScore = outcomeToScore[coachingResult.goal_outcome as keyof typeof outcomeToScore] ?? 'yellow'
+
+      const session = {
+        id: generateId(),
+        createdAt: new Date().toISOString(),
+        transcript: draft.transcript,
+        transcriptFormat: draft.transcriptFormat,
+        userGoal: draft.userGoal,
+        userTitle: draft.userTitle,
+        userFunction: '',
+        userSeniority: '',
+        meetingTitle: 'Meeting',
+        participants: draft.participants,
+        coachingOutput: coachingResult,
+        goalScore,
+      }
+
+      saveSession(session)
+      clearDraft()
+      router.push(`/results/${session.id}`)
+    }
+
+    // Fake steps animation
+    let stepIndex = 0
+    function runNextStep() {
+      if (stepIndex >= STEPS.length) {
+        setTimeout(() => {
+          stepsFinished = true
+          tryComplete()
+        }, 400)
+        return
+      }
       setCurrentStep(stepIndex)
       const duration = STEPS[stepIndex].duration
-
       setTimeout(() => {
         setCompletedSteps(prev => [...prev, stepIndex])
         stepIndex++
         setTimeout(runNextStep, 150)
       }, duration)
     }
-
     runNextStep()
+
+    // Real API call in parallel
+    fetch('/api/analyse', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        transcript: draft.transcript,
+        transcriptFormat: draft.transcriptFormat,
+        userGoal: draft.userGoal,
+        userTitle: draft.userTitle,
+        userSeniority: '',
+        userFunction: '',
+        meetingTitle: 'Meeting',
+        participants: draft.participants,
+        profile: getProfile(),
+      }),
+    })
+      .then(async res => {
+        const data = await res.json()
+        if (!res.ok) {
+          apiError = data.error || 'Analysis failed — please try again.'
+        } else {
+          coachingResult = data
+        }
+        apiFinished = true
+        tryComplete()
+      })
+      .catch(() => {
+        apiError = 'Network error — please try again.'
+        apiFinished = true
+        tryComplete()
+      })
   }, [router])
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-[#06060f] flex flex-col items-center justify-center px-6">
+        <p className="text-red-400 text-sm mb-6 text-center max-w-sm">{error}</p>
+        <Link href="/new" className="text-sm text-gray-400 hover:text-white transition-colors">
+          ← Go back and try again
+        </Link>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-[#06060f] flex flex-col px-6">
@@ -58,7 +140,6 @@ export default function AnalyzingPage() {
 
       <div className="flex-1 flex items-center justify-center">
         <div className="max-w-sm w-full text-center">
-          {/* Animated icon */}
           <div className="flex justify-center mb-10">
             <div className="relative w-16 h-16">
               <div className="absolute inset-0 rounded-full bg-indigo-600/20 animate-ping" />
@@ -68,13 +149,11 @@ export default function AnalyzingPage() {
             </div>
           </div>
 
-          {/* Title */}
           <h1 className="text-2xl font-semibold text-white mb-2 fade-in">Reading the room…</h1>
           <p className="text-sm text-gray-500 mb-10 fade-in-1">
             Analyzing your conversation
           </p>
 
-          {/* Steps */}
           <div className="text-left space-y-3">
             {STEPS.map((step, i) => {
               const isDone = completedSteps.includes(i)

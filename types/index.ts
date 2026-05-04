@@ -13,11 +13,9 @@ export interface Participant {
 export interface DraftSession {
   transcript: string
   transcriptFormat: TranscriptFormat
-  detectedParticipants: string[]
+  participants: Participant[]
   userTitle: string
-  userFunction: string
-  userSeniority: string
-  meetingTitle?: string
+  userGoal: string
 }
 
 export interface Session {
