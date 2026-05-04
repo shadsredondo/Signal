@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { saveDraft } from '@/lib/storage'
-import { parseTranscript } from '@/lib/transcript-parser'
+import { parseTranscript, extractRolesFromTranscript } from '@/lib/transcript-parser'
 import { lookupRole } from '@/lib/stakeholders'
 import { ROLE_GROUPS, getAllRoles, addCustomRole } from '@/lib/default-roles'
 import { generateId } from '@/lib/utils'
@@ -81,7 +81,7 @@ function RoleInput({ value, onChange }: { value: string; onChange: (v: string) =
         onFocus={() => setOpen(true)}
         onBlur={handleBlur}
       />
-      {open && filtered.length > 0 && (
+      {open && (filtered.length > 0 || (query.trim() && !allRoles.includes(query.trim()))) && (
         <ul className="absolute z-10 left-0 right-0 top-full mt-1 bg-white rounded-xl border border-gray-100 shadow-lg overflow-hidden">
           {filtered.map(r => (
             <li key={r}>
@@ -94,6 +94,17 @@ function RoleInput({ value, onChange }: { value: string; onChange: (v: string) =
               </button>
             </li>
           ))}
+          {query.trim() && !allRoles.includes(query.trim()) && (
+            <li className={filtered.length > 0 ? 'border-t border-gray-100' : ''}>
+              <button
+                type="button"
+                onMouseDown={() => select(query.trim())}
+                className="w-full text-left px-4 py-2.5 text-sm text-indigo-600 hover:bg-indigo-50 transition-colors"
+              >
+                Use &ldquo;{query.trim()}&rdquo;
+              </button>
+            </li>
+          )}
         </ul>
       )}
     </div>
@@ -154,10 +165,11 @@ export default function NewMeetingPage() {
         return
       }
       const { format, speakers } = parseTranscript(transcript)
+      const roleMap = extractRolesFromTranscript(transcript)
       const detected = speakers.map(name => ({
         id: generateId(),
         name,
-        role: lookupRole(name),
+        role: roleMap.get(name) || lookupRole(name),
         importance: 'high' as const,
         isUser: false,
       }))
@@ -256,54 +268,8 @@ export default function NewMeetingPage() {
 
         <div className="border-t border-gray-100 mb-10" />
 
-        {/* Participants */}
-        <div className="mb-10 fade-in-2">
-          <h2 className="text-base font-semibold text-gray-900 mb-1">Who was in the room?</h2>
-          <p className="text-sm text-gray-400 mb-5">
-            {transcript.trim()
-              ? 'Detected from your transcript — edit as needed.'
-              : 'Add the people who were in this meeting.'}
-          </p>
-
-          {participants.length > 0 && (
-            <div className="flex items-center gap-4 px-4 mb-2">
-              <div className="w-9 flex-shrink-0" />
-              <span className="flex-[2] text-xs font-medium text-gray-400 uppercase tracking-wide">Name</span>
-              <div className="w-px flex-shrink-0" />
-              <span className="flex-1 text-xs font-medium text-gray-400 uppercase tracking-wide">Role</span>
-              <div className="w-7 flex-shrink-0" />
-            </div>
-          )}
-
-          <div className="space-y-2 mb-4">
-            {participants.map(p => (
-              <ParticipantRow
-                key={p.id}
-                participant={p}
-                onUpdate={updated => updateParticipant(p.id, updated)}
-                onRemove={() => removeParticipant(p.id)}
-              />
-            ))}
-          </div>
-
-          {errors.participants && (
-            <p className="text-xs text-red-400 mb-3 px-1">{errors.participants}</p>
-          )}
-
-          <button
-            type="button"
-            onClick={addParticipant}
-            className="flex items-center gap-1.5 text-sm text-indigo-500 hover:text-indigo-600 font-medium px-1"
-          >
-            <Plus size={14} />
-            Add someone
-          </button>
-        </div>
-
-        <div className="border-t border-gray-100 mb-10" />
-
         {/* Goal */}
-        <div className="mb-10 fade-in-3">
+        <div className="mb-10 fade-in-2">
           <h2 className="text-base font-semibold text-gray-900 mb-1">
             What did you want from this meeting?
           </h2>
@@ -345,6 +311,52 @@ export default function NewMeetingPage() {
             }}
             error={errors.goal}
           />
+        </div>
+
+        <div className="border-t border-gray-100 mb-10" />
+
+        {/* Participants */}
+        <div className="mb-10 fade-in-3">
+          <h2 className="text-base font-semibold text-gray-900 mb-1">Who was in the room?</h2>
+          <p className="text-sm text-gray-400 mb-5">
+            {transcript.trim()
+              ? 'Detected from your transcript — edit as needed.'
+              : 'Paste your transcript above and participants will be auto-detected.'}
+          </p>
+
+          {participants.length > 0 && (
+            <div className="flex items-center gap-4 px-4 mb-2">
+              <div className="w-9 flex-shrink-0" />
+              <span className="flex-[2] text-xs font-medium text-gray-400 uppercase tracking-wide">Name</span>
+              <div className="w-px flex-shrink-0" />
+              <span className="flex-1 text-xs font-medium text-gray-400 uppercase tracking-wide">Role</span>
+              <div className="w-7 flex-shrink-0" />
+            </div>
+          )}
+
+          <div className="space-y-2 mb-4">
+            {participants.map(p => (
+              <ParticipantRow
+                key={p.id}
+                participant={p}
+                onUpdate={updated => updateParticipant(p.id, updated)}
+                onRemove={() => removeParticipant(p.id)}
+              />
+            ))}
+          </div>
+
+          {errors.participants && (
+            <p className="text-xs text-red-400 mb-3 px-1">{errors.participants}</p>
+          )}
+
+          <button
+            type="button"
+            onClick={addParticipant}
+            className="flex items-center gap-1.5 text-sm text-indigo-500 hover:text-indigo-600 font-medium px-1"
+          >
+            <Plus size={14} />
+            Add someone
+          </button>
         </div>
 
         <div className="border-t border-gray-100 mb-10" />

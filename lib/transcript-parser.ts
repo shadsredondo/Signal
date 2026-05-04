@@ -82,6 +82,21 @@ export function extractSpeakers(text: string, format: TranscriptFormat): string[
   return Array.from(speakers).filter(s => s.length > 0)
 }
 
+export function extractRolesFromTranscript(text: string): Map<string, string> {
+  const roles = new Map<string, string>()
+  // Matches "Name (Role): text" — role must be non-numeric and ≤6 words
+  const pattern = /^([A-Z][^(:\n]{1,40})\s*\(([^)\d]{3,60})\):/gm
+  let match
+  while ((match = pattern.exec(text)) !== null) {
+    const name = match[1].trim()
+    const role = match[2].trim()
+    if (role.split(/\s+/).length <= 6 && !isNonSpeaker(name)) {
+      roles.set(name, role)
+    }
+  }
+  return roles
+}
+
 export function parseTranscript(text: string): { format: TranscriptFormat; speakers: string[] } {
   const format = detectFormat(text)
   const speakers = extractSpeakers(text, format)
