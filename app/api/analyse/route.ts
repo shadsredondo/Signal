@@ -27,6 +27,16 @@ export async function POST(request: NextRequest) {
       profile: UserProfile | null
     } = body
 
+    if (!transcript?.trim()) {
+      return NextResponse.json({ error: 'Transcript is required and cannot be empty' }, { status: 400 })
+    }
+    if (!userGoal?.trim()) {
+      return NextResponse.json({ error: 'Meeting goal is required' }, { status: 400 })
+    }
+    if (!Array.isArray(participants) || participants.length === 0) {
+      return NextResponse.json({ error: 'At least one participant is required' }, { status: 400 })
+    }
+
     const userParticipant = participants.find(p => p.isUser)
     const otherParticipants = participants.filter(p => !p.isUser)
 
@@ -61,10 +71,14 @@ ${participantList}
 ## Your profile
 ${profileSection}`
 
+    if (!userMessage.trim()) {
+      return NextResponse.json({ error: 'Message content is empty — check your inputs' }, { status: 400 })
+    }
+
     const response = await client.messages.create({
       model: 'claude-opus-4-7',
       max_tokens: 8192,
-      system: SYSTEM_PROMPT,
+      system: SYSTEM_PROMPT || undefined,
       messages: [{ role: 'user', content: userMessage }],
     })
 
@@ -88,6 +102,10 @@ ${profileSection}`
     }
     if (error instanceof Anthropic.RateLimitError) {
       return NextResponse.json({ error: 'Rate limited — please wait a moment and try again' }, { status: 429 })
+    }
+    if (error instanceof Anthropic.BadRequestError) {
+      console.error('Bad request to Anthropic API:', error.message)
+      return NextResponse.json({ error: `Invalid request: ${error.message}` }, { status: 400 })
     }
     console.error('Analysis error:', error)
     return NextResponse.json({ error: 'Analysis failed — please try again' }, { status: 500 })
