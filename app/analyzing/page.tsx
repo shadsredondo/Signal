@@ -30,6 +30,7 @@ export default function AnalyzingPage() {
       return
     }
 
+    const safeDraft = draft
     let stepsFinished = false
     let apiFinished = false
     let coachingResult: CoachingOutput | null = null
@@ -48,14 +49,14 @@ export default function AnalyzingPage() {
       const session = {
         id: generateId(),
         createdAt: new Date().toISOString(),
-        transcript: draft.transcript,
-        transcriptFormat: draft.transcriptFormat,
-        userGoal: draft.userGoal,
-        userTitle: draft.userTitle,
+        transcript: safeDraft.transcript,
+        transcriptFormat: safeDraft.transcriptFormat,
+        userGoal: safeDraft.userGoal,
+        userTitle: safeDraft.userTitle,
         userFunction: '',
         userSeniority: '',
         meetingTitle: 'Meeting',
-        participants: draft.participants,
+        participants: safeDraft.participants,
         coachingOutput: coachingResult,
         goalScore,
       }
